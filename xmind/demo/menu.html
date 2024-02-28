@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Menu</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+
+      header {
+        position: relative;
+        height: 60px;
+        background-color: antiquewhite;
+      }
+      .container {
+        position: relative;
+        width: 120px;
+        height: 100%;
+        cursor: pointer;
+        background-color: aqua;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .menu {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        cursor: pointer;
+        background-color: aqua;
+        border: 1px solid gray;
+      }
+      .menu:hover > .menu {
+        display: flex;
+      }
+      .menu .menu {
+        top: 0;
+        left: calc(100% + 4px);
+      }
+
+      .item {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 60px;
+        width: 120px;
+        background-color: white;
+      }
+      .item:hover {
+        background-color: gray;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="container">菜单</div>
+    </header>
+  </body>
+  <script>
+    const createTree = (menu = []) => {
+      const map = new Map();
+      const roots = [];
+      for (const item of menu) {
+        const node = {
+          ...item,
+          children: [],
+        };
+
+        const parent = map.get(item.pid);
+        if (parent) {
+          parent.children.push(node);
+        } else {
+          roots.push(node);
+        }
+        map.set(item.id, node);
+      }
+
+      return roots;
+    };
+    const createItem = (text) => {
+      const div = document.createElement('div');
+      div.classList.add('item');
+      div.innerText = text;
+      return div;
+    };
+
+    const createMenu = () => {
+      const div = document.createElement('div');
+      div.classList.add('menu');
+      return div;
+    };
+
+    const switchDisplay = (el) => {
+      const display = el.style.display;
+      if (!display || display === 'none') {
+        el.style.display = 'block';
+      } else {
+        el.style.display = 'none';
+      }
+    };
+
+    const handleItemClick = (e) => {
+      e.stopPropagation();
+      const { target } = e;
+      const targetMenu = target.querySelector('.menu');
+      const parent = target.parentElement;
+      const allMenus = Array.from(parent.querySelectorAll('.menu'));
+      allMenus.forEach((item) => {
+        item.style.display = 'none';
+      });
+
+      if (targetMenu) {
+        targetMenu.style.display = 'block';
+      }
+    };
+
+    const clickOutSide = (target, callback) => {
+      document.onclick = function (e) {
+        const isClickOutSide = !target.contains(e.target);
+        if (isClickOutSide) {
+          callback && callback();
+        }
+      };
+    };
+
+    const mount = (parent, layer = []) => {
+      const menu = createMenu();
+      for (const node of layer) {
+        const item = createItem(node.name);
+        item.addEventListener('click', handleItemClick);
+        if (node.children.length) {
+          mount(item, node.children);
+        }
+        menu.appendChild(item);
+      }
+
+      parent.appendChild(menu);
+    };
+
+    const data = [
+      {
+        id: 1,
+        name: '旅游',
+        pid: 0,
+      },
+      { id: 2, name: '国外', pid: 1 },
+      { id: 3, name: '国内', pid: 1 },
+      { id: 4, name: '泰国', pid: 2 },
+      { id: 5, name: '租车', pid: 0 },
+      { id: 6, name: '海外租车', pid: 5 },
+      { id: 7, name: 'SUV', pid: 6 },
+      { id: 8, name: '紧凑', pid: 6 },
+    ];
+    const roots = createTree(data);
+    const container = document.querySelector('.container');
+    mount(container, roots);
+    container.addEventListener('click', handleItemClick);
+    clickOutSide(container, () => {
+      Array.from(document.querySelectorAll('.menu')).forEach((menu) => {
+        menu.style.display = 'none';
+      });
+    });
+  </script>
+</html>
