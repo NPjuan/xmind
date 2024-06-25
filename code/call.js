@@ -33,3 +33,5 @@ function call(context, ...args) {
 
 Function.prototype.call = call;
 log.call(proxy, 1, 2, 3);
+
+const arr = []
